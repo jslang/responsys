@@ -46,8 +46,10 @@ class InteractClientTests(unittest.TestCase):
         self.assertTrue(self.interact.connect())
 
     def test_connect_method_sets_soapheaders(self):
+        soapheaders = Mock()
+        self.interact.client.factory.create.return_value = soapheaders
         self.interact.connect()
-        self.assertTrue(self.interact.client.set_options.called)
+        self.interact.client.set_options.assert_called_once_with(soapheaders=soapheaders)
 
     @patch.object(InteractClient, 'logout', Mock(return_value=True))
     def test_disconnect_method_returns_true_on_success(self):
@@ -59,4 +61,4 @@ class InteractClientTests(unittest.TestCase):
 
     def test_disconnect_method_unsets_soapheaders(self):
         self.interact.disconnect()
-        self.assertTrue(self.interact.client.set_options.called)
+        self.interact.client.set_options.assert_called_once_with(soapheaders=())
