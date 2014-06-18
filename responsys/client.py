@@ -35,10 +35,10 @@ class InteractClient(object):
     }
 
     ENDPOINTS = {
-            '2': 'https://ws2.responsys.net/webservices/services/ResponsysWSService',
-            '5': 'https://ws5.responsys.net/webservices/services/ResponsysWSService',
-            'rtm4': 'http://rtm4.responsys.net:80/tmws/services/TriggeredMessageWS',
-            'rtm4b': 'http://rtm4b.responsys.net:80/tmws/services/TriggeredMessageWS',
+        '2': 'https://ws2.responsys.net/webservices/services/ResponsysWSService',
+        '5': 'https://ws5.responsys.net/webservices/services/ResponsysWSService',
+        'rtm4': 'http://rtm4.responsys.net:80/tmws/services/TriggeredMessageWS',
+        'rtm4b': 'http://rtm4b.responsys.net:80/tmws/services/TriggeredMessageWS',
     }
 
     @property
