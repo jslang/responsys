@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from os import path
 
 project_dir = path.abspath(path.dirname(__file__))
-with open(path.join(project_dir, 'README')) as f:
+with open(path.join(project_dir, 'README.md')) as f:
     long_description = f.read()
 
 install_requires = (
