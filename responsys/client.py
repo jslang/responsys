@@ -3,6 +3,9 @@ import logging
 from suds.client import Client
 from suds import WebFault
 
+from .types import (
+    RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult)
+
 log = logging.getLogger(__name__)
 
 
@@ -73,7 +76,7 @@ class InteractClient(object):
                 log.error('Login failed, unknown error', exc_info=True)
             return False
 
-        self.__set_session(login_result.sessionId)
+        self.__set_session(login_result.session_id)
         return True
 
     def disconnect(self):
@@ -82,16 +85,16 @@ class InteractClient(object):
 
     # Session Management Methods
     def login(self, username, password):
-        return self.client.service.login(username, password)
+        return LoginResult(self.client.service.login(username, password))
 
     def logout(self):
         return self.client.service.logout()
 
     def login_with_certificate(self, encrypted_server_challenge):
-        pass
+        return LoginResult(self.client.service.loginWithCertificate(encrypted_server_challenge))
 
     def authenticate_server(self, username, client_challenge):
-        pass
+        return ServerAuthResult(self.client.service.authenticateServer(username, client_challenge))
 
     def __set_session(self, session_id):
         session_header = self.client.factory.create('SessionHeader')
@@ -103,16 +106,20 @@ class InteractClient(object):
 
     # List Management Methods
     def merge_list_members(self, list_, record_data, merge_rule):
-        pass
+        return MergeResult(self.client.service.mergeListMembers(list_, record_data, merge_rule))
 
     def merge_list_members_RIID(self, list_, record_data, merge_rule):
-        pass
+        return RecipientResult(
+            self.client.service.mergeListMembersRIID(list_, record_data, merge_rule))
 
     def delete_list_members(self, list_, query_column, ids_to_delete):
-        pass
+        return DeleteResult(
+            self.client.service.deleteListMembers(list_, query_column, ids_to_delete))
 
     def retreive_list_members(self, list_, query_column, field_list, ids_to_retreive):
-        pass
+        return RecordData(
+            self.client.service.retreiveListMembers(
+                list_, query_column, field_list, ids_to_retreive))
 
     # TODO: Implement
     #
