@@ -28,6 +28,10 @@ class InteractType(object):
 
         return soap_object
 
+    def set_attributes(self, *args, **kwargs):
+        for name, value in list(kwargs.items()):
+            self.soap_attribute(name, value)
+
 
 class InteractObject(InteractType):
     def set_attributes(self, folder_name, object_name):
