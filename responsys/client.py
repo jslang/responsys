@@ -179,8 +179,8 @@ class InteractClient(object):
         list_ = list_.get_soap_object(self.client)
         result = self.client.service.deleteListMembers(list_, query_column, ids_to_delete)
         if hasattr(result, '__iter__'):
-            return (DeleteResult(result) for delete_result in result)
-        return DeleteResult(result)
+            return [DeleteResult(result) for delete_result in result]
+        return [DeleteResult(result)]
 
     def retrieve_list_members(self, list_, query_column, field_list, ids_to_retrieve):
         """ Responsys.retrieveListMembers call
