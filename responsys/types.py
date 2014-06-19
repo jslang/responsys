@@ -81,21 +81,23 @@ class ListMergeRule(InteractType):
     these options do.
     """
 
+    DEFAULTS = {
+        'insert_on_no_match': True,
+        'update_on_match': 'REPLACE_ALL',
+        'match_column_name_1': 'Customer_Id_',
+        'match_column_name_2': None,
+        'match_column_name_3': None,
+        'match_operator': 'NONE',
+        'optin_value': 'I',
+        'optout_value': 'O',
+        'html_value': 'H',
+        'text_value': 'T',
+        'reject_record_if_channel_empty': 'E',
+        'default_permission_status': 'OPTIN',
+    }
+
     def set_attributes(self, **overrides):
-        options = {
-            'insert_on_no_match': True,
-            'update_on_match': 'REPLACE_ALL',
-            'match_column_name_1': 'Customer_Id_',
-            'match_column_name_2': None,
-            'match_column_name_3': None,
-            'match_operator': 'NONE',
-            'optin_value': 'I',
-            'optout_value': 'O',
-            'html_value': 'H',
-            'text_value': 'T',
-            'reject_record_if_channel_empty': 'E',
-            'default_permission_status': 'OPTIN',
-        }
+        options = self.DEFAULTS.copy()
         options.update(overrides)
 
         self.soap_attribute('insert_on_no_match', options['insert_on_no_match'])
