@@ -199,9 +199,76 @@ class InteractClient(object):
             list_, query_column, field_list, ids_to_retrieve)
         return RecordData(result.recordData)
 
+    # Table Management Methods
+    def delete_table_records(self, table, query_column, ids_to_delete):
+        """ Responsys.deleteTableRecords call
+
+        Accepts:
+            InteractObject table
+            string query_column
+                possible values: 'RIID'|'EMAIL_ADDRESS'|'CUSTOMER_ID'|'MOBILE_NUMBER'
+            list ids_to_delete
+
+        Returns a list of DeleteResult instances
+        """
+        table = table.get_soap_object()
+        result = self.client.service.deleteTableRecords(table, query_column, ids_to_delete)
+        if hasattr(result, '__iter__'):
+            return [DeleteResult(result) for delete_result in result]
+        return [DeleteResult(result)]
+
+    def merge_table_records_with_pk(self, table, record_data, insert_on_no_match, update_on_match):
+        """ Responsys.mergeTableRecordsWithPK call
+
+        Accepts:
+            InteractObject table
+            RecordData record_data
+            string insert_on_no_match
+            string update_on_match
+
+        Returns a RecipientResult
+        """
+        table = table.get_soap_object()
+        record_data = record_data.get_soap_object()
+        return RecipientResult(self.client.service.mergeTableRecordsWithPK(
+            table, record_data, insert_on_no_match, update_on_match))
+
+    def merge_into_profile_extension(self, profile_extension, record_data, match_column,
+                                     insert_on_no_match, update_on_match):
+        """ Responsys.mergeIntoProfileExtension call
+
+        Accepts:
+            InteractObject profile_extension
+            RecordData record_data
+            string match_column
+            string insert_on_no_match
+            string update_on_match
+
+        Returns a RecipientResult
+        """
+        profile_extension = profile_extension.get_soap_object()
+        record_data = record_data.get_soap_object()
+        return RecipientResult(self.client.service.mergeIntoProfileExtension(
+            profile_extension, record_data, match_column, insert_on_no_match, update_on_match))
+
+    def retrieve_table_recods(self, table, query_column, field_list, ids_to_retrieve):
+        """ Responsys.mergeIntoProfileExtension call
+
+        Accepts:
+            InteractObject table
+            string query_column
+                possible values: 'RIID'|'EMAIL_ADDRESS'|'CUSTOMER_ID'|'MOBILE_NUMBER'
+            list field_list
+            list ids_to_retrieve
+
+        Returns a RecordData
+        """
+        table = table.get_soap_object()
+        return RecordData(self.client.service.retrieveTableRecords(
+            table, query_column, field_list, ids_to_retrieve))
+
     # TODO: Implement
     #
-    # Table Management Methods
     # Content Management Methods
     # Folder Management Methods,
     # Campagin Management Methods
