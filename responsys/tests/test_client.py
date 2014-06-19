@@ -20,6 +20,14 @@ class InteractClientTests(unittest.TestCase):
         }
         self.interact = InteractClient(**self.configuration)
 
+    @patch.object(InteractClient, 'WSDLS', {'pod': 'pod_wsdl'})
+    def test_wsdl_property_returns_correct_value(self):
+        self.assertEqual(self.interact.wsdl, 'pod_wsdl')
+
+    @patch.object(InteractClient, 'ENDPOINTS', {'pod': 'pod_endpoint'})
+    def test_endpoint_property_returns_correct_value(self):
+        self.assertEqual(self.interact.endpoint, 'pod_endpoint')
+
     @patch.object(InteractClient, 'connect', Mock())
     def test_entering_context_calls_connect(self):
         self.assertFalse(self.interact.connect.called)
