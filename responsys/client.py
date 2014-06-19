@@ -3,6 +3,7 @@ import logging
 from suds.client import Client
 from suds import WebFault
 
+from .exceptions import ConnectError
 from .types import (
     RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult)
 
@@ -79,7 +80,7 @@ class InteractClient(object):
                 log.error('Login failed, invalid username or password')
             else:
                 log.error('Login failed, unknown error', exc_info=True)
-            return False
+            raise ConnectError("Failed to connect to soap service")
 
         self.__set_session(login_result.session_id)
         return True

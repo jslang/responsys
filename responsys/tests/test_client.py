@@ -3,6 +3,7 @@ import unittest
 from mock import Mock, patch
 from suds import WebFault
 
+from ..exceptions import ConnectError
 from ..client import InteractClient
 
 
@@ -36,10 +37,19 @@ class InteractClientTests(unittest.TestCase):
         self.interact.connect()
         self.assertTrue(self.interact.login.called)
 
-    @patch.object(InteractClient, 'login', Mock(side_effect=WebFault(Mock(), Mock())))
-    def test_connect_method_returns_false_on_failure(self):
-        self.interact.connect()
-        self.assertFalse(self.interact.connect())
+    @patch.object(InteractClient, 'login')
+    def test_connect_method_raises_connect_error_on_account_fault(self, login):
+        login.side_effect = WebFault(Mock(), Mock())
+        with self.assertRaises(ConnectError):
+            self.interact.connect()
+
+    @patch.object(InteractClient, 'login')
+    def test_connect_method_raises_connect_error_on_unknown_error(self, login):
+        fault = Mock()
+        del fault.detail.AccountFault
+        login.side_effect = WebFault(fault, Mock())
+        with self.assertRaises(ConnectError):
+            self.interact.connect()
 
     @patch.object(InteractClient, 'login', Mock(return_value=Mock(sessionId=1)))
     def test_connect_method_returns_true_on_success(self):
