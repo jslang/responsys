@@ -1,6 +1,8 @@
 from setuptools import setup, find_packages
 from os import path
 
+import responsys
+
 project_dir = path.abspath(path.dirname(__file__))
 with open(path.join(project_dir, 'README.md')) as f:
     long_description = f.read()
@@ -16,9 +18,9 @@ tests_require = (
 )
 
 setup(
-    name='responsys',
-    keywords='responsys interact client api',
-    version='0.1.0',
+    name=responsys.__name__,
+    keywords=responsys.__keywords__,
+    version=responsys.__version__,
     author='Jared Lang',
     author_email='kaptainlange@gmail.com',
     description='Python client library for the Responsys Interact API',
