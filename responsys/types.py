@@ -169,6 +169,12 @@ class Record(InteractType):
 
         self.soap_attribute('field_values', field_values)
 
+    def __iter__(self):
+        return (v for v in self.field_values)
+
+    def __len__(self):
+        return len(self.field_values)
+
 
 class DeleteResult(InteractType):
     """ Responsys DeleteResult Type """
