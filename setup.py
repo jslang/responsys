@@ -9,9 +9,10 @@ install_requires = (
     'suds-jurko'
 )
 tests_require = (
+    'coverage',
+    'mock',
     'nose',
     'pinocchio',
-    'mock',
 )
 
 setup(
