@@ -66,6 +66,11 @@ class InteractClient(object):
         self.disconnect()
 
     def connect(self):
+        """ Connects to the Responsys soap service
+
+        Uses the credentials passed to the client init to login and setup the session id returned.
+        Returns True on successful connection, otherwise False.
+        """
         try:
             login_result = self.login(self.username, self.password)
         except WebFault as e:
@@ -80,6 +85,11 @@ class InteractClient(object):
         return True
 
     def disconnect(self):
+        """ Disconnects from the Responsys soap service
+
+        Calls the service logout method and destroys the client's session information. Returns
+        True on success, False otherwise.
+        """
         if self.logout():
             self.__unset_session()
             return True
@@ -87,41 +97,83 @@ class InteractClient(object):
 
     # Session Management Methods
     def login(self, username, password):
+        """ Responsys.login soap call
+
+        Accepts username and password for authentication, returns a LoginResult object.
+        """
         return LoginResult(self.client.service.login(username, password))
 
     def logout(self):
+        """ Responsys.logout soap call
+
+        Returns True on success, False otherwise.
+        """
         return self.client.service.logout()
 
     def login_with_certificate(self, encrypted_server_challenge):
+        """ Responsys.loginWithCertificate soap call
+
+        Accepts encrypted_server_challenge for login. Returns LoginResult.
+        """
         return LoginResult(self.client.service.loginWithCertificate(encrypted_server_challenge))
 
     def authenticate_server(self, username, client_challenge):
+        """ Responsys.authenticateServer soap call
+
+        Accepts username and client_challenge to authenciate. Returns ServerAuthResult.
+        """
         return ServerAuthResult(self.client.service.authenticateServer(username, client_challenge))
 
     def __set_session(self, session_id):
+        """ Set appropriate session header on suds client """
         session_header = self.client.factory.create('SessionHeader')
         session_header.sessionId = session_id
         self.client.set_options(soapheaders=session_header)
 
     def __unset_session(self):
+        """ Remove session header from current suds client """
         self.client.set_options(soapheaders=())
 
     # List Management Methods
     def merge_list_members(self, list_, record_data, merge_rule):
+        """ Responsys.mergeListMembers call
+
+        Accepts:
+            InteractObject list_
+            RecordData record_data
+            ListMergeRule merge_rule
+
+        Returns a MergeResult
+        """
         list_ = list_.get_soap_object(self.client)
         record_data = record_data.get_soap_object(self.client)
         merge_rule = merge_rule.get_soap_object(self.client)
         return MergeResult(self.client.service.mergeListMembers(list_, record_data, merge_rule))
 
     def merge_list_members_RIID(self, list_, record_data, merge_rule):
+        """ Responsys.mergeListMembersRIID call
+
+        Accepts:
+            InteractObject list_
+            RecordData record_data
+            ListMergeRule merge_rule
+
+        Returns a RecipientResult
+        """
         list_ = list_.get_soap_object(self.client)
         result = self.client.service.mergeListMembersRIID(list_, record_data, merge_rule)
         return RecipientResult(result.recipientResult)
 
     def delete_list_members(self, list_, query_column, ids_to_delete):
-        """ Delete the list members defined by id and column to match.
+        """ Responsys.deleteListMembers call
 
-        Returns a list of DeleteResults
+        Accepts:
+            InteractObject list_
+            string query_column
+                possible values: 'RIID'|'EMAIL_ADDRESS'|'CUSTOMER_ID'|'MOBILE_NUMBER'
+            list ids_to_delete
+
+        Returns a list of DeleteResult instances
         """
         list_ = list_.get_soap_object(self.client)
         result = self.client.service.deleteListMembers(list_, query_column, ids_to_delete)
@@ -130,7 +182,14 @@ class InteractClient(object):
         return DeleteResult(result)
 
     def retrieve_list_members(self, list_, query_column, field_list, ids_to_retrieve):
-        """ Retrieve member fields defined by id and column to match
+        """ Responsys.retrieveListMembers call
+
+        Accepts:
+            InteractObject list_
+            string query_column
+                possible values: 'RIID'|'EMAIL_ADDRESS'|'CUSTOMER_ID'|'MOBILE_NUMBER'
+            list field_list
+            list ids_to_retrieve
 
         Returns a RecordData instance
         """
