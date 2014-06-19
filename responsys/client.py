@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 class InteractClient(object):
 
-    """Interact Client Class
+    """ Interact Client Class
 
     Provides access to the methods defined by the Responsys Interact API. Example setup:
 
@@ -119,7 +119,7 @@ class InteractClient(object):
         return RecipientResult(result.recipientResult)
 
     def delete_list_members(self, list_, query_column, ids_to_delete):
-        """Delete the list members defined by id and column to match.
+        """ Delete the list members defined by id and column to match.
 
         Returns a list of DeleteResults
         """
@@ -128,7 +128,7 @@ class InteractClient(object):
         return (DeleteResult(result) for delete_result in result)
 
     def retrieve_list_members(self, list_, query_column, field_list, ids_to_retrieve):
-        """Retrieve member fields defined by id and column to match
+        """ Retrieve member fields defined by id and column to match
 
         Returns a RecordData instance
         """

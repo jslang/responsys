@@ -1,4 +1,18 @@
 class InteractType(object):
+
+    """ InteractType class
+
+    Provides base interact type functionality. Interact types should register their WSDL defined
+    attributes via the soap_attribute method. This allows interact types to provide their own
+    soap friendly objects for use with the suds client used by the InteractClient.
+
+    Interact type attributes can be accessed via dictionary lookup, for example:
+
+        >>> InteractType(foo=1)
+        >>> InteractType['foo'] == InteractType.foo
+        ... True
+    """
+
     def __init__(self, *args, **kwargs):
         self._attributes = set()
         self.set_attributes(*args, **kwargs)
@@ -8,14 +22,16 @@ class InteractType(object):
 
     @property
     def soap_name(self):
+        """ Provide the WSDL defined name for this class. """
         return self.__class__.__name__
 
     def soap_attribute(self, name, value):
-        """Marks an attribute as being a part of the data defined by the soap datatype"""
+        """ Marks an attribute as being a part of the data defined by the soap datatype"""
         setattr(self, name, value)
         self._attributes.add(name)
 
     def get_soap_object(self, client):
+        """ Create and return a soap service type defined for this instance """
         def to_soap_attribute(attr):
             words = attr.split('_')
             words = words[:1] + [word.capitalize() for word in words[1:]]
@@ -34,6 +50,9 @@ class InteractType(object):
 
 
 class InteractObject(InteractType):
+
+    """ Responsys InteractObject Type """
+
     def set_attributes(self, folder_name, object_name):
         self.soap_attribute('folder_name', folder_name)
         self.soap_attribute('object_name', object_name)
@@ -41,7 +60,7 @@ class InteractObject(InteractType):
 
 class ListMergeRule(InteractType):
 
-    """ListMergeRule
+    """ ListMergeRule
 
     Constructor accepts overrides for the following defaults:
 
@@ -95,6 +114,14 @@ class ListMergeRule(InteractType):
 
 
 class RecordData(InteractType):
+
+    """ Responsys RecordData Type
+
+    Responsys type representing a mapping of field names to values. Inits with either a list of
+    dict-like objects, or a RecordData type from the soap service. Can be iterated over and has
+    a length.
+    """
+
     def set_attributes(self, record_data):
         if getattr(record_data, 'fieldNames', None):
             # Handle RecordData Type
@@ -117,12 +144,19 @@ class RecordData(InteractType):
         return len(self.records)
 
     def get_soap_object(self, client):
+        """ Override default get_soap_object behavior to account for child Record types """
         record_data = super().get_soap_object(client)
         record_data.records = [r.get_soap_object(client) for r in record_data.records]
         return record_data
 
 
 class Record(InteractType):
+
+    """ Responsys Record Type
+
+    A record is a series of values. Can be iterated over and has a length.
+    """
+
     def set_attributes(self, record):
         if getattr(record, 'fieldValues', None):
             # Handle API Record object
@@ -135,6 +169,7 @@ class Record(InteractType):
 
 
 class DeleteResult(InteractType):
+    """ Responsys DeleteResult Type """
     def set_attributes(self, delete_result):
         self.soap_attribute('error_message', delete_result.errorMessage)
         self.soap_attribute('success', delete_result.success)
