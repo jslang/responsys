@@ -26,7 +26,7 @@ setup(
     description='Python client library for the Responsys Interact API',
     long_description=long_description,
     packages=find_packages(),
-    license='LICENSE',
+    license='GPLv2',
     install_requires=install_requires,
     setup_requires=tests_require,
     tests_require=tests_require,
