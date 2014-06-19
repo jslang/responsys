@@ -133,7 +133,7 @@ class RecordData(InteractType):
             # Handle list of dictionaries
             assert len(record_data), "Record list length must be non-zero"
             field_names = list(record_data[0].keys())
-            records = [Record(list(r.values())) for r in record_data]
+            records = [Record(r.values()) for r in record_data]
 
         self.soap_attribute('field_names', field_names)
         self.soap_attribute('records', records)
@@ -165,7 +165,7 @@ class Record(InteractType):
             field_values = record.fieldValues
         else:
             # Handle list of values
-            field_values = record
+            field_values = list(record)
 
         self.soap_attribute('field_values', field_values)
 
