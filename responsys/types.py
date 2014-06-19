@@ -1,20 +1,38 @@
 class InteractType(object):
+    def __init__(self, *args, **kwargs):
+        self._attributes = set()
+        self.set_attributes(*args, **kwargs)
+
     def __getitem__(self, name):
         return getattr(self, name)
 
+    @property
+    def soap_name(self):
+        return self.__class__.__name__
+
+    def soap_attribute(self, name, value):
+        """Marks an attribute as being a part of the data defined by the soap datatype"""
+        setattr(self, name, value)
+        self._attributes.add(name)
+
+    def get_soap_object(self, client):
+        def to_soap_attribute(attr):
+            words = attr.split('_')
+            words = words[:1] + [word.capitalize() for word in words[1:]]
+            return ''.join(words)
+
+        soap_object = client.factory.create(self.soap_name)
+        for attr in self._attributes:
+            value = getattr(self, attr)
+            setattr(soap_object, to_soap_attribute(attr), value)
+
+        return soap_object
+
 
 class InteractObject(InteractType):
-    def __init__(self, folder_name, object_name):
-        self.folder_name = folder_name
-        self.object_name = object_name
-
-    @property
-    def folderName(self):
-        return self.folder_name
-
-    @property
-    def objectName(self):
-        return self.object_name
+    def set_attributes(self, folder_name, object_name):
+        self.soap_attribute('folder_name', folder_name)
+        self.soap_attribute('object_name', object_name)
 
 
 class ListMergeRule(InteractType):
@@ -25,7 +43,9 @@ class ListMergeRule(InteractType):
 
         'insert_on_no_match': True,
         'update_on_match': 'REPLACE_ALL',
-        'match_columns': ['Customer_Id_'],
+        'match_column_name_1': 'Customer_Id_',
+        'match_column_name_2': None,
+        'match_column_name_3': None,
         'match_operator': 'NONE',
         'optin_value': 'I',
         'optout_value': 'O',
@@ -38,11 +58,13 @@ class ListMergeRule(InteractType):
     these options do.
     """
 
-    def __init__(self, **overrides):
+    def set_attributes(self, **overrides):
         options = {
             'insert_on_no_match': True,
             'update_on_match': 'REPLACE_ALL',
-            'match_columns': ['Customer_Id_'],
+            'match_column_name_1': 'Customer_Id_',
+            'match_column_name_2': None,
+            'match_column_name_3': None,
             'match_operator': 'NONE',
             'optin_value': 'I',
             'optout_value': 'O',
@@ -53,141 +75,92 @@ class ListMergeRule(InteractType):
         }
         options.update(overrides)
 
-        self.insert_on_no_match = options['insert_on_no_match']
-        self.update_on_match = options['update_on_match']
-        self.match_columns = options['match_columns']
-        self.match_operator = options['match_operator']
-        self.optin_value = options['optin_value']
-        self.optout_value = options['optout_value']
-        self.html_value = options['html_value']
-        self.text_value = options['text_value']
-        self.reject_record_if_channel_empty = options['reject_record_if_channel_empty']
-        self.default_permission_status = options['default_permission_status']
-
-    @property
-    def insertOnNoMatch(self):
-        return self.insert_on_no_match
-
-    @property
-    def updateOnMatch(self):
-        return self.update_on_match
-
-    @property
-    def matchColumnName1(self):
-        return self.match_columns[0]
-
-    @property
-    def matchColumnName2(self):
-        if len(self.match_columns) > 1:
-            return self.match_columns[1]
-        return None
-
-    @property
-    def matchColumnName3(self):
-        if len(self.match_columns) > 2:
-            return self.match_columns[2]
-        return None
-
-    @property
-    def matchOperator(self):
-        return self.match_operator
-
-    @property
-    def optinValue(self):
-        return self.optin_value
-
-    @property
-    def optoutValue(self):
-        return self.optout_value
-
-    @property
-    def htmlValue(self):
-        return self.html_value
-
-    @property
-    def textValue(self):
-        return self.text_value
-
-    @property
-    def rejectRecordIfChannelEmpty(self):
-        return self.reject_record_if_channel_empty
-
-    @property
-    def defaultPermissionStatus(self):
-        return self.default_permission_status
+        self.soap_attribute('insert_on_no_match', options['insert_on_no_match'])
+        self.soap_attribute('update_on_match', options['update_on_match'])
+        self.soap_attribute('match_column_name_1', options['match_column_name_1'])
+        self.soap_attribute('match_column_name_2', options['match_column_name_2'])
+        self.soap_attribute('match_column_name_3', options['match_column_name_3'])
+        self.soap_attribute('match_operator', options['match_operator'])
+        self.soap_attribute('optin_value', options['optin_value'])
+        self.soap_attribute('optout_value', options['optout_value'])
+        self.soap_attribute('html_value', options['html_value'])
+        self.soap_attribute('text_value', options['text_value'])
+        self.soap_attribute(
+            'reject_record_if_channel_empty', options['reject_record_if_channel_empty'])
+        self.soap_attribute('default_permission_status', options['default_permission_status'])
 
 
 class RecordData(InteractType):
-    def __init__(self, record_data):
+    def set_attributes(self, record_data):
         if getattr(record_data, 'fieldNames', None):
             # Handle RecordData Type
-            self.field_names = record_data.fieldNames
-            self.records = [Record(r) for r in record_data.records]
+            field_names = record_data.fieldNames
+            records = [Record(r) for r in record_data.records]
         else:
             # Handle list of dictionaries
             assert len(record_data), "Record list length must be non-zero"
-            self.field_names = record_data[0].keys()
-            self.records = [Record(r.values()) for r in record_data]
+            field_names = list(record_data[0].keys())
+            records = [Record(list(r.values())) for r in record_data]
 
-    @property
-    def fieldNames(self):
-        return self.field_names
+        self.soap_attribute('field_names', field_names)
+        self.soap_attribute('records', records)
+
+    def __iter__(self):
+        for record in self.records:
+            yield dict(zip(self.field_names, record.field_values))
+
+    def __len__(self):
+        return len(self.records)
+
+    def get_soap_object(self, client):
+        record_data = super().get_soap_object(client)
+        record_data.records = [r.get_soap_object(client) for r in record_data.records]
+        return record_data
 
 
 class Record(InteractType):
-    def __init__(self, record):
+    def set_attributes(self, record):
         if getattr(record, 'fieldValues', None):
             # Handle API Record object
-            self.field_values = record.fieldValues
+            field_values = record.fieldValues
         else:
             # Handle list of values
-            self.field_values = record
+            field_values = record
 
-    @property
-    def fieldValues(self):
-        return self.field_values
+        self.soap_attribute('field_values', field_values)
 
 
-class ResultType(InteractType):
-    def __init__(self, original):
-        self.__original = original
-
-    def __getattr__(self, name):
-        return getattr(self.__original, name)
-
-
-class DeleteResult(ResultType):
-    def __init__(self, delete_result):
-        super().__init__(delete_result)
-        self.error_message = delete_result.errorMessage
+class DeleteResult(InteractType):
+    def set_attributes(self, delete_result):
+        self.soap_attribute('error_message', delete_result.errorMessage)
+        self.soap_attribute('success', delete_result.success)
+        self.soap_attribute('exception_code', delete_result.exceptionCode)
+        self.soap_attribute('id', delete_result.id)
 
 
-class LoginResult(ResultType):
-    def __init__(self, login_result):
-        super().__init__(login_result)
-        self.session_id = login_result.sessionId
+class LoginResult(InteractType):
+    def set_attributes(self, login_result):
+        self.soap_attribute('session_id', login_result.sessionId)
 
 
-class MergeResult(ResultType):
-    def __init__(self, merge_result):
-        super().__init__(merge_result)
-        self.insert_count = merge_result.insertCount
-        self.update_count = merge_result.updateCount
-        self.rejected_count = merge_result.rejectedCount
-        self.total_count = merge_result.totalCount
-        self.error_message = merge_result.errorMessage
+class MergeResult(InteractType):
+    def set_attributes(self, merge_result):
+        self.soap_attribute('insert_count', merge_result.insertCount)
+        self.soap_attribute('update_count', merge_result.updateCount)
+        self.soap_attribute('rejected_count', merge_result.rejectedCount)
+        self.soap_attribute('total_count', merge_result.totalCount)
+        self.soap_attribute('error_message', merge_result.errorMessage)
 
 
-class RecipientResult(ResultType):
-    def __init__(self, recipient_result):
-        super().__init__(recipient_result)
-        self.recipient_id = recipient_result.recipientId
-        self.error_message = recipient_result.errorMessage
+class RecipientResult(InteractType):
+    def set_attributes(self, recipient_result):
+        self.soap_attribute('recipient_id', recipient_result.recipientId)
+        self.soap_attribute('error_message', recipient_result.errorMessage)
 
 
-class ServerAuthResult(ResultType):
-    def __init__(self, server_auth_result):
-        super().__init__(server_auth_result)
-        self.auth_session_id = server_auth_result.authSessionId
-        self.encrypted_client_challenge = server_auth_result.encryptedClientChallenge
-        self.server_challenge = server_auth_result.serverChallenge
+class ServerAuthResult(InteractType):
+    def set_attributes(self, server_auth_result):
+        self.soap_attribute('auth_session_id', server_auth_result.authSessionId)
+        self.soap_attribute(
+            'encrypted_client_challenge', server_auth_result.encryptedClientChallenge)
+        self.soap_attribute('server_challenge', server_auth_result.serverChallenge)

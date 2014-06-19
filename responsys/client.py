@@ -80,8 +80,10 @@ class InteractClient(object):
         return True
 
     def disconnect(self):
-        self.__unset_session()
-        return self.logout()
+        if self.logout():
+            self.__unset_session()
+            return True
+        return False
 
     # Session Management Methods
     def login(self, username, password):
@@ -106,20 +108,34 @@ class InteractClient(object):
 
     # List Management Methods
     def merge_list_members(self, list_, record_data, merge_rule):
+        list_ = list_.get_soap_object(self.client)
+        record_data = record_data.get_soap_object(self.client)
+        merge_rule = merge_rule.get_soap_object(self.client)
         return MergeResult(self.client.service.mergeListMembers(list_, record_data, merge_rule))
 
     def merge_list_members_RIID(self, list_, record_data, merge_rule):
-        return RecipientResult(
-            self.client.service.mergeListMembersRIID(list_, record_data, merge_rule))
+        list_ = list_.get_soap_object(self.client)
+        result = self.client.service.mergeListMembersRIID(list_, record_data, merge_rule)
+        return RecipientResult(result.recipientResult)
 
     def delete_list_members(self, list_, query_column, ids_to_delete):
-        return DeleteResult(
-            self.client.service.deleteListMembers(list_, query_column, ids_to_delete))
+        """Delete the list members defined by id and column to match.
 
-    def retreive_list_members(self, list_, query_column, field_list, ids_to_retreive):
-        return RecordData(
-            self.client.service.retreiveListMembers(
-                list_, query_column, field_list, ids_to_retreive))
+        Returns a list of DeleteResults
+        """
+        list_ = list_.get_soap_object(self.client)
+        result = self.client.service.deleteListMembers(list_, query_column, ids_to_delete)
+        return (DeleteResult(result) for delete_result in result)
+
+    def retrieve_list_members(self, list_, query_column, field_list, ids_to_retrieve):
+        """Retrieve member fields defined by id and column to match
+
+        Returns a RecordData instance
+        """
+        list_ = list_.get_soap_object(self.client)
+        result = self.client.service.retrieveListMembers(
+            list_, query_column, field_list, ids_to_retrieve)
+        return RecordData(result.recordData)
 
     # TODO: Implement
     #
