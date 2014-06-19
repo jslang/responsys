@@ -39,6 +39,12 @@ Tests can be run via setuptools:
 
 	python setup.py nosetests
 
+Installing requirements for development environment can be accomplished via pip:
+
+	pip install -r requirements.txt
+
+Testing within a dev environment can be accomplished via ```nosetests```
+
 ## Legal ##
 
 This code is neither officially supported nor endorsed by Oracle, Responsys, or any related entites.
