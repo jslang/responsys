@@ -64,7 +64,7 @@ class InteractTypeChildTests(unittest.TestCase):
         return
 
 InteractTypeChildTests.generate_type_methods([
-    #(TypeToTest
+    # (TypeToTest
     #   init_kwargs,
     #   attrs_expectations)
     (InteractObject,
@@ -72,7 +72,7 @@ InteractTypeChildTests.generate_type_methods([
         {'folder_name': 'blarg', 'object_name': 'fuuuuu'}),
     (DeleteResult,
         {'delete_result': Mock(errorMessage='', success=True, exceptionCode='', id=1)},
-        {'error_message': '', 'success': True, 'exception_code':'', 'id': 1}),
+        {'error_message': '', 'success': True, 'exception_code': '', 'id': 1}),
     (LoginResult,
         {'login_result': Mock(sessionId=1)},
         {'session_id': 1}),
