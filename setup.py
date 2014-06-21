@@ -14,7 +14,10 @@ tests_require = (
     'coverage',
     'mock',
     'nose',
+    'pep8',
     'pinocchio',
+    'pyflakes',
+    'testtube',
 )
 
 setup(
