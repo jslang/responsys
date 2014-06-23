@@ -8,7 +8,9 @@ from ..types import (
 
 
 class InteractTypeTests(unittest.TestCase):
+
     """ InteractType instance """
+
     def setUp(self):
         self.type = InteractType(foo='bar')
         self.client = Mock()
@@ -44,7 +46,9 @@ class InteractTypeTests(unittest.TestCase):
 
 
 class InteractTypeChildTests(unittest.TestCase):
+
     """ InteractType descendant """
+
     @classmethod
     def generate_type_methods(cls, types_and_expectations):
         """ Auto generates test methods for type attribute tests """
@@ -60,13 +64,13 @@ class InteractTypeChildTests(unittest.TestCase):
 
             test_method = create_test_func(TypeClass, init, attrs)
             setattr(cls, test_method.__name__, test_method)
-
         return
+
 
 InteractTypeChildTests.generate_type_methods([
     # (TypeToTest
-    #   init_kwargs,
-    #   attrs_expectations)
+    #   initializer kwargs,
+    #   attributes expectations)
     (InteractObject,
         {'folder_name': 'blarg', 'object_name': 'fuuuuu'},
         {'folder_name': 'blarg', 'object_name': 'fuuuuu'}),
