@@ -197,7 +197,7 @@ class InteractClient(object):
         list_ = list_.get_soap_object(self.client)
         result = self.client.service.retrieveListMembers(
             list_, query_column, field_list, ids_to_retrieve)
-        return RecordData(result.recordData)
+        return RecordData.from_soap_type(result.recordData)
 
     # Table Management Methods
     def delete_table_records(self, table, query_column, ids_to_delete):
@@ -264,7 +264,7 @@ class InteractClient(object):
         Returns a RecordData
         """
         table = table.get_soap_object()
-        return RecordData(self.client.service.retrieveTableRecords(
+        return RecordData.from_soap_type(self.client.service.retrieveTableRecords(
             table, query_column, field_list, ids_to_retrieve))
 
     # TODO: Implement

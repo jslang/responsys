@@ -119,21 +119,23 @@ class RecordData(InteractType):
 
     """ Responsys RecordData Type
 
-    Responsys type representing a mapping of field names to values. Inits with either a list of
-    dict-like objects, or a RecordData type from the soap service. Can be iterated over and has
-    a length.
+    Responsys type representing a mapping of field names to values. Accepts a list of dictionary
+    like objects for init.
     """
 
+    @classmethod
+    def from_soap_type(cls, record_data):
+        record_data = [
+            dict(zip(record_data.field_names, r.fieldValues)) for r in record_data.records]
+        return cls(record_data)
+
     def set_attributes(self, record_data):
-        if getattr(record_data, 'fieldNames', None):
-            # Handle RecordData Type
-            field_names = record_data.fieldNames
-            records = [Record(r) for r in record_data.records]
-        else:
-            # Handle list of dictionaries
-            assert len(record_data), "Record list length must be non-zero"
-            field_names = list(record_data[0].keys())
-            records = [Record(r.values()) for r in record_data]
+        assert len(record_data), "Record list length must be non-zero"
+        field_names = list(record_data[0].keys())
+
+        records = []
+        for record in record_data:
+            records.append([record[field_name] for field_name in field_names])
 
         self.soap_attribute('field_names', field_names)
         self.soap_attribute('records', records)
@@ -148,7 +150,7 @@ class RecordData(InteractType):
     def get_soap_object(self, client):
         """ Override default get_soap_object behavior to account for child Record types """
         record_data = super().get_soap_object(client)
-        record_data.records = [r.get_soap_object(client) for r in record_data.records]
+        record_data.records = [Record(r).get_soap_object(client) for r in record_data.records]
         return record_data
 
 
@@ -160,13 +162,7 @@ class Record(InteractType):
     """
 
     def set_attributes(self, record):
-        if getattr(record, 'fieldValues', None):
-            # Handle API Record object
-            field_values = record.fieldValues
-        else:
-            # Handle list of values
-            field_values = list(record)
-
+        field_values = list(record)
         self.soap_attribute('field_values', field_values)
 
     def __iter__(self):
