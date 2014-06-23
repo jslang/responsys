@@ -1,6 +1,6 @@
 import unittest
 
-from mock import Mock
+from mock import Mock, patch
 
 from ..types import (
     InteractType, InteractObject, ListMergeRule, RecordData, Record, DeleteResult, LoginResult,
@@ -79,6 +79,9 @@ InteractTypeChildTests.generate_type_methods([
     (ListMergeRule,
         {'insert_on_no_match': 'A'},
         {'insert_on_no_match': 'A'}),
+    (Record,
+        {'record': [1, 2, 3]},
+        {'field_values': [1, 2, 3]}),
     (MergeResult,
         {'merge_result': Mock(insertCount=1, updateCount=1, rejectedCount=1, totalCount=3,
          errorMessage='Blarg')},
@@ -92,3 +95,20 @@ InteractTypeChildTests.generate_type_methods([
          serverChallenge='ahhh')},
         {'auth_session_id': 1, 'encrypted_client_challenge': 'boo', 'server_challenge': 'ahhh'})
 ])
+
+
+class RecordDataTests(unittest.TestCase):
+    def setUp(self):
+        self.record_patcher = patch('responsys.types.Record')
+        self.Record = self.record_patcher.start()
+        self.addCleanup(self.record_patcher.stop)
+
+        self.record_data = RecordData([{'foo': 1, 'bar': 2}, {'bar': 4, 'foo': 3}])
+
+    def test_sets_proper_field_name_values(self):
+        self.assertEqual(set(self.record_data.field_names), set(['foo', 'bar']))
+
+    def test_sets_proper_record_values(self):
+        self.assertTrue(
+            self.record_data.records == [[1, 2], [3, 4]] or
+            self.record_data.records == [[2, 1], [4, 3]])
