@@ -126,7 +126,7 @@ class RecordData(InteractType):
     @classmethod
     def from_soap_type(cls, record_data):
         record_data = [
-            dict(zip(record_data.field_names, r.fieldValues)) for r in record_data.records]
+            dict(zip(record_data.fieldNames, r.fieldValues)) for r in record_data.records]
         return cls(record_data)
 
     def set_attributes(self, record_data):
