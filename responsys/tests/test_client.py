@@ -3,7 +3,7 @@ import unittest
 from mock import Mock, patch
 from suds import WebFault
 
-from ..exceptions import ConnectError, ServiceError, ApiLimitError, AccountFault
+from ..exceptions import ConnectError, ServiceError, ApiLimitError, AccountFault, TableFault
 from ..client import InteractClient
 
 
@@ -38,6 +38,12 @@ class InteractClientTests(unittest.TestCase):
             Mock(faultstring='API_LIMIT_EXCEEDED'), Mock())
         with self.assertRaises(ApiLimitError):
             self.interact.call('rm_rf', '/.')
+
+    def test_call_method_raises_TableFault_for_table_fault_exception_from_service(self):
+        self.client.service.give_me_a_table.side_effect = WebFault(
+            Mock(faultstring='TableFault'), Mock())
+        with self.assertRaises(TableFault):
+            self.interact.call('give_me_a_table', 'awesome_table')
 
     @patch.object(InteractClient, 'WSDLS', {'pod': 'pod_wsdl'})
     def test_wsdl_property_returns_correct_value(self):

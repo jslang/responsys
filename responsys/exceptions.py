@@ -13,5 +13,11 @@ class ApiLimitError(RuntimeError):
     pass
 
 
+class TableFault(RuntimeError):
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
+
+
 class ServiceError(WebFault):
     pass
