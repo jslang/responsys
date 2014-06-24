@@ -194,6 +194,11 @@ class MergeResult(InteractType):
         self.soap_attribute('total_count', merge_result.totalCount)
         self.soap_attribute('error_message', merge_result.errorMessage)
 
+    @property
+    def failed(self):
+        # TODO: Implement ability to parse error message for failed ids
+        return []
+
 
 class RecipientResult(InteractType):
     def set_attributes(self, recipient_result):
