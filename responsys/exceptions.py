@@ -1,6 +1,10 @@
 from suds import WebFault
 
 
+class AccountFault(RuntimeError):
+    pass
+
+
 class ConnectError(RuntimeError):
     pass
 

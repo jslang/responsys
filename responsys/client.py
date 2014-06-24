@@ -3,7 +3,7 @@ import logging
 from suds.client import Client
 from suds import WebFault
 
-from .exceptions import ConnectError, ServiceError
+from .exceptions import ConnectError, ServiceError, AccountFault, ApiLimitError
 from .types import (
     RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult)
 
@@ -71,7 +71,14 @@ class InteractClient(object):
         try:
             response = getattr(self.client.service, method)(*args)
         except WebFault as web_fault:
-            # Check for rate limit error
+            fault_name = getattr(web_fault.fault, 'faultstring', None)
+
+            if fault_name == 'API_LIMIT_EXCEEDED':
+                raise ApiLimitError
+
+            if fault_name == 'AccountFault':
+                raise AccountFault
+
             raise ServiceError(web_fault.fault, web_fault.document)
         return response
 
@@ -83,12 +90,8 @@ class InteractClient(object):
         """
         try:
             login_result = self.login(self.username, self.password)
-        except ServiceError as service_error:
-            account_fault = getattr(service_error.fault.detail, 'AccountFault', None)
-            if account_fault:
-                log.error('Login failed, invalid username or password')
-            else:
-                log.error('Login failed, unknown error', exc_info=True)
+        except AccountFault:
+            log.error('Login failed, invalid username or password')
             raise ConnectError("Failed to connect to soap service")
 
         self.__set_session(login_result.session_id)

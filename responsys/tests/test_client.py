@@ -3,7 +3,7 @@ import unittest
 from mock import Mock, patch
 from suds import WebFault
 
-from ..exceptions import ConnectError, ServiceError
+from ..exceptions import ConnectError, ServiceError, ApiLimitError, AccountFault
 from ..client import InteractClient
 
 
@@ -29,8 +29,14 @@ class InteractClientTests(unittest.TestCase):
         self.assertEqual(self.interact.call('bananas'), 1)
 
     def test_call_method_raises_ServiceError_for_unhandled_webfault(self):
-        self.client.service.rm_rf.side_effect = WebFault(1, 2)
+        self.client.service.rm_rf.side_effect = WebFault(Mock(), Mock())
         with self.assertRaises(ServiceError):
+            self.interact.call('rm_rf', '/.')
+
+    def test_call_method_raises_ApiLimitError_for_rate_limit_exception_from_service(self):
+        self.client.service.rm_rf.side_effect = WebFault(
+            Mock(faultstring='API_LIMIT_EXCEEDED'), Mock())
+        with self.assertRaises(ApiLimitError):
             self.interact.call('rm_rf', '/.')
 
     @patch.object(InteractClient, 'WSDLS', {'pod': 'pod_wsdl'})
@@ -60,13 +66,7 @@ class InteractClientTests(unittest.TestCase):
 
     @patch.object(InteractClient, 'login')
     def test_connect_method_raises_connect_error_on_account_fault(self, login):
-        login.side_effect = ServiceError(Mock(**{'detail.AccountFault': Mock()}), Mock())
-        with self.assertRaises(ConnectError):
-            self.interact.connect()
-
-    @patch.object(InteractClient, 'login')
-    def test_connect_method_raises_connect_error_on_unknown_error(self, login):
-        login.side_effect = ServiceError(Mock(**{'detail.AccountFault': None}), Mock())
+        login.side_effect = AccountFault
         with self.assertRaises(ConnectError):
             self.interact.connect()
 
