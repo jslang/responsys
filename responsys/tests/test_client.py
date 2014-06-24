@@ -3,7 +3,7 @@ import unittest
 from mock import Mock, patch
 from suds import WebFault
 
-from ..exceptions import ConnectError
+from ..exceptions import ConnectError, ServiceError
 from ..client import InteractClient
 
 
@@ -19,6 +19,19 @@ class InteractClientTests(unittest.TestCase):
             'client': self.client,
         }
         self.interact = InteractClient(**self.configuration)
+
+    def test_call_method_calls_soap_method_with_passed_arguments(self):
+        self.interact.call('somemethod', 'arg')
+        self.client.service.somemethod.assert_called_with('arg')
+
+    def test_call_method_returns_soap_method_return_value(self):
+        self.client.service.bananas.return_value = 1
+        self.assertEqual(self.interact.call('bananas'), 1)
+
+    def test_call_method_raises_ServiceError_for_unhandled_webfault(self):
+        self.client.service.rm_rf.side_effect = WebFault(1, 2)
+        with self.assertRaises(ServiceError):
+            self.interact.call('rm_rf', '/.')
 
     @patch.object(InteractClient, 'WSDLS', {'pod': 'pod_wsdl'})
     def test_wsdl_property_returns_correct_value(self):

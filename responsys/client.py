@@ -3,7 +3,7 @@ import logging
 from suds.client import Client
 from suds import WebFault
 
-from .exceptions import ConnectError
+from .exceptions import ConnectError, ServiceError
 from .types import (
     RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult)
 
@@ -66,6 +66,16 @@ class InteractClient(object):
     def __exit__(self, type_, value, traceback):
         self.disconnect()
 
+    def call(self, method, *args):
+        """ Calls the service method defined with the arguments provided """
+        try:
+            response = getattr(self.client.service, method)(*args)
+        except WebFault as web_fault:
+            # Check for rate limit error
+            # Check for connect error
+            raise ServiceError(web_fault.fault, web_fault.document)
+        return response
+
     def connect(self):
         """ Connects to the Responsys soap service
 
@@ -102,28 +112,28 @@ class InteractClient(object):
 
         Accepts username and password for authentication, returns a LoginResult object.
         """
-        return LoginResult(self.client.service.login(username, password))
+        return LoginResult(self.call('login', username, password))
 
     def logout(self):
         """ Responsys.logout soap call
 
         Returns True on success, False otherwise.
         """
-        return self.client.service.logout()
+        return self.call('logout')
 
     def login_with_certificate(self, encrypted_server_challenge):
         """ Responsys.loginWithCertificate soap call
 
         Accepts encrypted_server_challenge for login. Returns LoginResult.
         """
-        return LoginResult(self.client.service.loginWithCertificate(encrypted_server_challenge))
+        return LoginResult(self.call('loginWithCertificate', encrypted_server_challenge))
 
     def authenticate_server(self, username, client_challenge):
         """ Responsys.authenticateServer soap call
 
         Accepts username and client_challenge to authenciate. Returns ServerAuthResult.
         """
-        return ServerAuthResult(self.client.service.authenticateServer(username, client_challenge))
+        return ServerAuthResult(self.call('authenticateServer', username, client_challenge))
 
     def __set_session(self, session_id):
         """ Set appropriate session header on suds client """
@@ -149,7 +159,7 @@ class InteractClient(object):
         list_ = list_.get_soap_object(self.client)
         record_data = record_data.get_soap_object(self.client)
         merge_rule = merge_rule.get_soap_object(self.client)
-        return MergeResult(self.client.service.mergeListMembers(list_, record_data, merge_rule))
+        return MergeResult(self.call('mergeListMembers', list_, record_data, merge_rule))
 
     def merge_list_members_RIID(self, list_, record_data, merge_rule):
         """ Responsys.mergeListMembersRIID call
@@ -162,7 +172,7 @@ class InteractClient(object):
         Returns a RecipientResult
         """
         list_ = list_.get_soap_object(self.client)
-        result = self.client.service.mergeListMembersRIID(list_, record_data, merge_rule)
+        result = self.call('mergeListMembersRIID', list_, record_data, merge_rule)
         return RecipientResult(result.recipientResult)
 
     def delete_list_members(self, list_, query_column, ids_to_delete):
@@ -177,7 +187,7 @@ class InteractClient(object):
         Returns a list of DeleteResult instances
         """
         list_ = list_.get_soap_object(self.client)
-        result = self.client.service.deleteListMembers(list_, query_column, ids_to_delete)
+        result = self.call('deleteListMembers', list_, query_column, ids_to_delete)
         if hasattr(result, '__iter__'):
             return [DeleteResult(delete_result) for delete_result in result]
         return [DeleteResult(result)]
@@ -195,8 +205,7 @@ class InteractClient(object):
         Returns a RecordData instance
         """
         list_ = list_.get_soap_object(self.client)
-        result = self.client.service.retrieveListMembers(
-            list_, query_column, field_list, ids_to_retrieve)
+        result = self.call('retrieveListMembers', list_, query_column, field_list, ids_to_retrieve)
         return RecordData.from_soap_type(result.recordData)
 
     # Table Management Methods
@@ -212,7 +221,7 @@ class InteractClient(object):
         Returns a list of DeleteResult instances
         """
         table = table.get_soap_object()
-        result = self.client.service.deleteTableRecords(table, query_column, ids_to_delete)
+        result = self.call('deleteTableRecords', table, query_column, ids_to_delete)
         if hasattr(result, '__iter__'):
             return [DeleteResult(delete_result) for delete_result in result]
         return [DeleteResult(result)]
@@ -230,8 +239,8 @@ class InteractClient(object):
         """
         table = table.get_soap_object()
         record_data = record_data.get_soap_object()
-        return RecipientResult(self.client.service.mergeTableRecordsWithPK(
-            table, record_data, insert_on_no_match, update_on_match))
+        return RecipientResult(self.call(
+            'mergeTableRecordsWithPK', table, record_data, insert_on_no_match, update_on_match))
 
     def merge_into_profile_extension(self, profile_extension, record_data, match_column,
                                      insert_on_no_match, update_on_match):
@@ -248,8 +257,9 @@ class InteractClient(object):
         """
         profile_extension = profile_extension.get_soap_object()
         record_data = record_data.get_soap_object()
-        return RecipientResult(self.client.service.mergeIntoProfileExtension(
-            profile_extension, record_data, match_column, insert_on_no_match, update_on_match))
+        return RecipientResult(self.call(
+            'mergeIntoProfileExtension', profile_extension, record_data, match_column,
+            insert_on_no_match, update_on_match))
 
     def retrieve_table_recods(self, table, query_column, field_list, ids_to_retrieve):
         """ Responsys.mergeIntoProfileExtension call
@@ -264,8 +274,8 @@ class InteractClient(object):
         Returns a RecordData
         """
         table = table.get_soap_object()
-        return RecordData.from_soap_type(self.client.service.retrieveTableRecords(
-            table, query_column, field_list, ids_to_retrieve))
+        return RecordData.from_soap_type(self.call(
+            'retrieveTableRecords', table, query_column, field_list, ids_to_retrieve))
 
     # TODO: Implement
     #
