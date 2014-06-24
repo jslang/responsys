@@ -5,3 +5,4 @@ dist/
 *.egg
 *.egg-info/
 .coverage
+responsys/tests/integration_config.py
