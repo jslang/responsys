@@ -60,15 +60,13 @@ class InteractClientTests(unittest.TestCase):
 
     @patch.object(InteractClient, 'login')
     def test_connect_method_raises_connect_error_on_account_fault(self, login):
-        login.side_effect = WebFault(Mock(), Mock())
+        login.side_effect = ServiceError(Mock(**{'detail.AccountFault': Mock()}), Mock())
         with self.assertRaises(ConnectError):
             self.interact.connect()
 
     @patch.object(InteractClient, 'login')
     def test_connect_method_raises_connect_error_on_unknown_error(self, login):
-        fault = Mock()
-        del fault.detail.AccountFault
-        login.side_effect = WebFault(fault, Mock())
+        login.side_effect = ServiceError(Mock(**{'detail.AccountFault': None}), Mock())
         with self.assertRaises(ConnectError):
             self.interact.connect()
 

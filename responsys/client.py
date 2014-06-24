@@ -72,7 +72,6 @@ class InteractClient(object):
             response = getattr(self.client.service, method)(*args)
         except WebFault as web_fault:
             # Check for rate limit error
-            # Check for connect error
             raise ServiceError(web_fault.fault, web_fault.document)
         return response
 
@@ -84,8 +83,8 @@ class InteractClient(object):
         """
         try:
             login_result = self.login(self.username, self.password)
-        except WebFault as e:
-            account_fault = getattr(e.fault.detail, 'AccountFault', None)
+        except ServiceError as service_error:
+            account_fault = getattr(service_error.fault.detail, 'AccountFault', None)
             if account_fault:
                 log.error('Login failed, invalid username or password')
             else:
