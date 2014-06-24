@@ -220,7 +220,7 @@ class InteractClient(object):
 
         Returns a list of DeleteResult instances
         """
-        table = table.get_soap_object()
+        table = table.get_soap_object(self.client)
         result = self.call('deleteTableRecords', table, query_column, ids_to_delete)
         if hasattr(result, '__iter__'):
             return [DeleteResult(delete_result) for delete_result in result]
@@ -237,8 +237,8 @@ class InteractClient(object):
 
         Returns a RecipientResult
         """
-        table = table.get_soap_object()
-        record_data = record_data.get_soap_object()
+        table = table.get_soap_object(self.client)
+        record_data = record_data.get_soap_object(self.client)
         return RecipientResult(self.call(
             'mergeTableRecordsWithPK', table, record_data, insert_on_no_match, update_on_match))
 
@@ -255,13 +255,13 @@ class InteractClient(object):
 
         Returns a RecipientResult
         """
-        profile_extension = profile_extension.get_soap_object()
-        record_data = record_data.get_soap_object()
+        profile_extension = profile_extension.get_soap_object(self.client)
+        record_data = record_data.get_soap_object(self.client)
         return RecipientResult(self.call(
             'mergeIntoProfileExtension', profile_extension, record_data, match_column,
             insert_on_no_match, update_on_match))
 
-    def retrieve_table_recods(self, table, query_column, field_list, ids_to_retrieve):
+    def retrieve_table_records(self, table, query_column, field_list, ids_to_retrieve):
         """ Responsys.mergeIntoProfileExtension call
 
         Accepts:
@@ -273,7 +273,7 @@ class InteractClient(object):
 
         Returns a RecordData
         """
-        table = table.get_soap_object()
+        table = table.get_soap_object(self.client)
         return RecordData.from_soap_type(self.call(
             'retrieveTableRecords', table, query_column, field_list, ids_to_retrieve))
 
