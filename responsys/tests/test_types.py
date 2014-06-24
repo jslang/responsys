@@ -116,3 +116,18 @@ class RecordDataTests(unittest.TestCase):
         self.assertTrue(
             self.record_data.records == [[1, 2], [3, 4]] or
             self.record_data.records == [[2, 1], [4, 3]])
+
+
+class MergeResultTests(unittest.TestCase):
+    def setUp(self):
+        self.error_message = 'These failed: Record 1 = Test, Record 2 = What'
+        self.merge_result = MergeResult(Mock(
+            insertCount=1,
+            updateCount=1,
+            rejectedCount=2,
+            totalCount=4,
+            errorMessage=self.error_message,
+        ))
+
+    def test_failed_property_returns_list_of_ids_from_error_string(self):
+        self.assertEqual(self.merge_result.failed, [1, 2])

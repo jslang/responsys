@@ -1,3 +1,6 @@
+import re
+
+
 class InteractType(object):
 
     """ InteractType class
@@ -196,8 +199,12 @@ class MergeResult(InteractType):
 
     @property
     def failed(self):
-        # TODO: Implement ability to parse error message for failed ids
-        return []
+        failed = None
+        if self.error_message:
+            failed = re.findall(r'Record ([0-9]*) =', self.error_message)
+            failed = [f.isnumeric() and int(f) or f for f in failed]
+
+        return failed or []
 
 
 class RecipientResult(InteractType):
