@@ -245,7 +245,7 @@ class InteractClient(object):
         """
         table = table.get_soap_object(self.client)
         record_data = record_data.get_soap_object(self.client)
-        return RecipientResult(self.call(
+        return MergeResult(self.call(
             'mergeTableRecordsWithPK', table, record_data, insert_on_no_match, update_on_match))
 
     def merge_into_profile_extension(self, profile_extension, record_data, match_column,
