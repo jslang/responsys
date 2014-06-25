@@ -256,7 +256,7 @@ class InteractClient(object):
             string insert_on_no_match
             string update_on_match
 
-        Returns a RecipientResult
+        Returns a MergeResult
         """
         table = table.get_soap_object(self.client)
         record_data = record_data.get_soap_object(self.client)
