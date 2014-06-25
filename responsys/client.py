@@ -232,6 +232,21 @@ class InteractClient(object):
             return [DeleteResult(delete_result) for delete_result in result]
         return [DeleteResult(result)]
 
+    def merge_table_records(self, table, record_data, match_column_names):
+        """ Responsys.mergeTableRecords call
+
+        Accepts:
+            InteractObject table
+            RecordData record_data
+            list match_column_names
+
+        Returns a MergeResult
+        """
+        table = table.get_soap_object(self.client)
+        record_data = record_data.get_soap_object(self.client)
+        return MergeResult(self.call(
+            'mergeTableRecords', table, record_data, match_column_names))
+
     def merge_table_records_with_pk(self, table, record_data, insert_on_no_match, update_on_match):
         """ Responsys.mergeTableRecordsWithPK call
 
