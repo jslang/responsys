@@ -215,6 +215,90 @@ class InteractClient(object):
         return RecordData.from_soap_type(result.recordData)
 
     # Table Management Methods
+    def create_table(self, table, fields):
+        """ Responsys.createTable call
+
+        Accepts:
+            InteractObject table
+            list fields
+
+        Returns True on success
+        """
+        table = table.get_soap_object(self.client)
+        return self.call('createTable', table, fields)
+
+    def create_table_with_pk(self, table, fields, primary_keys):
+        """ Responsys.createTableWithPK call
+
+        Accepts:
+            InteractObject table
+            list fields
+            list primary_keys
+
+        Returns True on success
+        """
+        table = table.get_soap_object(self.client)
+        return self.call('createTableWithPK', table, fields, primary_keys)
+
+    def delete_table(self, table):
+        """ Responsys.deleteTable call
+
+        Accepts:
+            InteractObject table
+
+        Returns True on success
+        """
+        table = table.get_soap_object(self.client)
+        return self.call('deleteTable', table)
+
+    def delete_profile_extension_members(self, profile_extension, query_column, ids_to_delete):
+        """ Responsys.retrieveProfileExtensionRecords call
+
+        Accepts:
+            InteractObject profile_extension
+            list field_list
+            list ids_to_retrieve
+            string query_column
+                default: 'RIID'
+
+        Returns list of DeleteResults
+        """
+        profile_extension = profile_extension.get_soap_object(self.client)
+        result = self.call(
+            'retrieveProfileExtensionRecords', profile_extension, query_column, ids_to_delete)
+        if hasattr(result, '__iter__'):
+            return [DeleteResult(delete_result) for delete_result in result]
+        return [DeleteResult(result)]
+
+    def retrieve_profile_extension_records(self, profile_extension, field_list, ids_to_retrieve,
+                                           query_column='RIID'):
+        """ Responsys.retrieveProfileExtensionRecords call
+
+        Accepts:
+            InteractObject profile_extension
+            list field_list
+            list ids_to_retrieve
+            string query_column
+                default: 'RIID'
+
+        Returns RecordData
+        """
+        profile_extension = profile_extension.get_soap_object(self.client)
+        return RecordData.from_soap_type(
+            self.call('retrieveProfileExtensionRecords',
+                      profile_extension, query_column, field_list, ids_to_retrieve))
+
+    def truncate_table(self, table):
+        """ Responsys.truncateTable call
+
+        Accepts:
+            InteractObject table
+
+        Returns True on success
+        """
+        table = table.get_soap_object(self.client)
+        return self.call('truncateTable', table)
+
     def delete_table_records(self, table, query_column, ids_to_delete):
         """ Responsys.deleteTableRecords call
 
