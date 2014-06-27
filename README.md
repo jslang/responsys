@@ -48,8 +48,14 @@ project also utilizes [testtube](https://github.com/thomasw/testtube). After cre
 environment, simply run the ```stir``` command to have testtube run tests after changes to the
 project.
 
+## Acknowledgements ##
+
+This library was developed while working for the fine folks at
+[udemy.com](http://www.udemy.com/about).
+
 ## Legal ##
 
-This code is neither officially supported nor endorsed by Oracle, Responsys, or any related entites.
+This code is neither officially supported nor endorsed by Udemy.com, Oracle, Responsys, or any
+related entites.
 
 [License](./LICENSE)
