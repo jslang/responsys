@@ -20,6 +20,17 @@ class InteractClientTests(unittest.TestCase):
         }
         self.interact = InteractClient(**self.configuration)
 
+    def test_connected_property_returns_false_by_default(self):
+        self.assertFalse(self.interact.connected)
+
+    def test_connected_property_returns_true_after_successful_connect(self):
+        self.interact.connect()
+        self.assertTrue(self.interact.connected)
+
+    def test_connected_property_returns_false_after_disconnect(self):
+        self.interact.disconnect()
+        self.assertFalse(self.interact.connected)
+
     def test_client_property_returns_configured_client(self):
         self.assertEqual(self.interact.client, self.client)
 
@@ -91,6 +102,7 @@ class InteractClientTests(unittest.TestCase):
 
     @patch.object(InteractClient, 'logout', Mock(return_value=True))
     def test_disconnect_method_returns_true_on_success(self):
+        self.interact.connected = True
         self.assertTrue(self.interact.disconnect())
 
     @patch.object(InteractClient, 'logout', Mock(return_value=False))
@@ -98,5 +110,6 @@ class InteractClientTests(unittest.TestCase):
         self.assertFalse(self.interact.disconnect())
 
     def test_disconnect_method_unsets_soapheaders(self):
+        self.interact.connected = True
         self.interact.disconnect()
         self.interact.client.set_options.assert_called_once_with(soapheaders=())

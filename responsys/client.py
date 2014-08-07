@@ -59,6 +59,14 @@ class InteractClient(object):
             self._client = Client(self.wsdl, location=self.endpoint)
         return self._client
 
+    @property
+    def connected(self):
+        return getattr(self, '_connected', False)
+
+    @connected.setter
+    def connected(self, value):
+        self._connected = value
+
     def __init__(self, username, password, pod, client=None):
         self.username = username
         self.password = password
@@ -105,6 +113,7 @@ class InteractClient(object):
             raise ConnectError("Failed to connect to soap service")
 
         self.__set_session(login_result.session_id)
+        self.connected = True
         return True
 
     def disconnect(self):
@@ -113,8 +122,9 @@ class InteractClient(object):
         Calls the service logout method and destroys the client's session information. Returns
         True on success, False otherwise.
         """
-        if self.logout():
+        if self.connected and self.logout():
             self.__unset_session()
+            self.connected = False
             return True
         return False
 
