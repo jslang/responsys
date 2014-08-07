@@ -53,11 +53,17 @@ class InteractClient(object):
     def endpoint(self):
         return self.ENDPOINTS[self.pod]
 
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = Client(self.wsdl, location=self.endpoint)
+        return self._client
+
     def __init__(self, username, password, pod, client=None):
         self.username = username
         self.password = password
         self.pod = pod
-        self.client = client or Client(self.wsdl, location=self.endpoint)
+        self._client = client
 
     def __enter__(self):
         self.connect()

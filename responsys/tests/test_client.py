@@ -20,6 +20,9 @@ class InteractClientTests(unittest.TestCase):
         }
         self.interact = InteractClient(**self.configuration)
 
+    def test_client_property_returns_configured_client(self):
+        self.assertEqual(self.interact.client, self.client)
+
     def test_call_method_calls_soap_method_with_passed_arguments(self):
         self.interact.call('somemethod', 'arg')
         self.client.service.somemethod.assert_called_with('arg')
