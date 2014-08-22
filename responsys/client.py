@@ -3,12 +3,12 @@ import logging
 from suds.client import Client
 from suds import WebFault
 
-from .exceptions import ConnectError, ServiceError, AccountFault, ApiLimitError, TableFault
+from .exceptions import (
+    ConnectError, ServiceError, AccountFault, ApiLimitError, TableFault, ListFault)
 from .types import (
     RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult)
 
 log = logging.getLogger(__name__)
-
 
 class InteractClient(object):
 
@@ -86,16 +86,16 @@ class InteractClient(object):
             response = getattr(self.client.service, method)(*args)
         except WebFault as web_fault:
             fault_name = getattr(web_fault.fault, 'faultstring', None)
+            error = str(web_fault.fault.detail)
 
             if fault_name == 'TableFault':
-                raise TableFault(
-                    web_fault.fault.detail.exceptionCode, web_fault.fault.detail.exceptionMessage)
-
+                raise TableFault(error)
+            if fault_name == 'ListFault':
+                raise ListFault(error)
             if fault_name == 'API_LIMIT_EXCEEDED':
-                raise ApiLimitError
-
+                raise ApiLimitError(error)
             if fault_name == 'AccountFault':
-                raise AccountFault
+                raise AccountFault(error)
 
             raise ServiceError(web_fault.fault, web_fault.document)
         return response

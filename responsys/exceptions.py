@@ -13,10 +13,12 @@ class ApiLimitError(RuntimeError):
     pass
 
 
+class ListFault(RuntimeError):
+    pass
+
+
 class TableFault(RuntimeError):
-    def __init__(self, code, message):
-        self.code = code
-        self.message = message
+    pass
 
 
 class ServiceError(WebFault):

@@ -3,7 +3,8 @@ import unittest
 from mock import Mock, patch
 from suds import WebFault
 
-from ..exceptions import ConnectError, ServiceError, ApiLimitError, AccountFault, TableFault
+from ..exceptions import (
+    ConnectError, ServiceError, ApiLimitError, AccountFault, TableFault, ListFault)
 from ..client import InteractClient
 
 
@@ -46,6 +47,12 @@ class InteractClientTests(unittest.TestCase):
         self.client.service.rm_rf.side_effect = WebFault(Mock(), Mock())
         with self.assertRaises(ServiceError):
             self.interact.call('rm_rf', '/.')
+
+    def test_call_method_raises_ListFault_for_list_fault_exception_from_service(self):
+        self.client.service.list_thing.side_effect = WebFault(
+            Mock(faultstring='ListFault'), Mock())
+        with self.assertRaises(ListFault):
+            self.interact.call('list_thing')
 
     def test_call_method_raises_ApiLimitError_for_rate_limit_exception_from_service(self):
         self.client.service.rm_rf.side_effect = WebFault(
