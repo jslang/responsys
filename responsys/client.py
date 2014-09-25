@@ -378,9 +378,10 @@ class InteractClient(object):
         """
         profile_extension = profile_extension.get_soap_object(self.client)
         record_data = record_data.get_soap_object(self.client)
-        return RecipientResult(self.call(
+        results = self.call(
             'mergeIntoProfileExtension', profile_extension, record_data, match_column,
-            insert_on_no_match, update_on_match))
+            insert_on_no_match, update_on_match)
+        return [RecipientResult(result) for result in results]
 
     def retrieve_table_records(self, table, query_column, field_list, ids_to_retrieve):
         """ Responsys.mergeIntoProfileExtension call
