@@ -1,4 +1,5 @@
 import re
+from collections import UserDict
 
 
 class InteractType(object):
@@ -219,3 +220,84 @@ class ServerAuthResult(InteractType):
         self.soap_attribute(
             'encrypted_client_challenge', server_auth_result.encryptedClientChallenge)
         self.soap_attribute('server_challenge', server_auth_result.serverChallenge)
+
+
+class CustomEvent(InteractType):
+    def get_soap_object(self, client):
+        custom_event = client.factory.create(self.soap_name)
+        custom_event.eventName = self.event_name
+        custom_event.eventId = self.event_id
+        custom_event.eventStringDataMapping = self.event_string_data_mapping
+        custom_event.eventDateDataMapping = self.event_date_data_mapping
+        custom_event.eventNumberDataMapping = self.event_number_data_mapping
+        return custom_event
+
+    def set_attributes(self, event_name, event_id, event_string_data_mapping=None,
+            event_date_data_mapping=None, event_number_data_mapping=None):
+        self.soap_attribute('event_name', event_name)
+        self.soap_attribute('event_id', event_id)
+        self.soap_attribute('event_string_data_mapping', event_string_data_mapping)
+        self.soap_attribute('event_date_data_mapping', event_date_data_mapping)
+        self.soap_attribute('event_number_data_mapping', event_number_data_mapping)
+
+
+class Recipient(InteractType):
+    class EmailFormats(object):
+        TEXT = 'TEXT_FORMAT'
+        HTML = 'HTML_FORMAT'
+        MULTIPART = 'MULTIPART_FORMAT'
+        NONE = 'NO_FORMAT'
+
+    def get_soap_object(self, client):
+        recipient = client.factory.create(self.soap_name)
+        recipient.listName = self.list_name.get_soap_object(client)
+        recipient.recipientId = self.recipient_id
+        recipient.customerId = self.customer_id
+        recipient.emailAddress = self.email_address
+        recipient.mobileNumber = self.mobile_number
+        recipient.emailFormat = self.email_format
+        return recipient
+
+    def set_attributes(
+            self, list_name, recipient_id=None, customer_id=None,
+            email_address=None, mobile_number=None, email_format=EmailFormats.TEXT):
+
+        assert any([recipient_id, customer_id, email_address, mobile_number]), (
+            "At least one of recipient_id, customer_id, mobile_number, or email_address must be "
+            "provided")
+        self.soap_attribute('list_name', list_name)
+        self.soap_attribute('recipient_id', recipient_id)
+        self.soap_attribute('customer_id', customer_id)
+        self.soap_attribute('email_address', email_address)
+        self.soap_attribute('mobile_number', mobile_number)
+        self.soap_attribute('email_format', email_format)
+
+
+class RecipientData(InteractType):
+    def set_attributes(self, recipient, optional_data=None):
+        self.soap_attribute('recipient', recipient)
+        self.soap_attribute('optional_data', OptionalData(optional_data) or OptionalData({}))
+
+    def get_soap_object(self, client):
+        recipient_data = client.factory.create(self.soap_name)
+        recipient_data.optionalData = self.optional_data.get_soap_object(client)
+        recipient_data.recipient = self.recipient.get_soap_object(client)
+        return recipient_data
+
+
+class OptionalData(UserDict, InteractType):
+    def get_soap_object(self, client):
+        optional_data_list = []
+        for name, value in self.items():
+            optional_data = client.factory.create(self.soap_name)
+            optional_data.name = name
+            optional_data.value = value
+            optional_data_list.append(optional_data)
+        return optional_data_list or None
+
+
+class TriggerResult(InteractType):
+    def set_attributes(self, trigger_result):
+        self.soap_attribute('recipient_id', trigger_result.recipientId)
+        self.soap_attribute('success', trigger_result.success)
+        self.soap_attribute('error_message', trigger_result.errorMessage)

@@ -6,9 +6,11 @@ from suds import WebFault
 from .exceptions import (
     ConnectError, ServiceError, AccountFault, ApiLimitError, TableFault, ListFault)
 from .types import (
-    RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult)
+    RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult,
+    TriggerResult)
 
 log = logging.getLogger(__name__)
+
 
 class InteractClient(object):
 
@@ -399,8 +401,21 @@ class InteractClient(object):
         return RecordData.from_soap_type(self.call(
             'retrieveTableRecords', table, query_column, field_list, ids_to_retrieve))
 
+    # Campaign Management Methods
+    # TODO: implement
+    # GetLaunchStatus
+    # LaunchCampaign
+    # MergeTriggerEmail
+    # ScheduleCampaignLaunch
+    # TriggerCampaignMessage
+    def trigger_custom_event(self, custom_event, recipient_data=None):
+        custom_event = custom_event.get_soap_object(self.client)
+        recipient_data = [rdata.get_soap_object(self.client) for rdata in recipient_data]
+        results = self.call('triggerCustomEvent', custom_event, recipient_data)
+        return [TriggerResult(result) for result in results]
+
+
     # TODO: Implement
     #
     # Content Management Methods
-    # Folder Management Methods,
-    # Campagin Management Methods
+    # Folder Management Methods
