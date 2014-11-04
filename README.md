@@ -43,10 +43,7 @@ Installing requirements for development environment can be accomplished via pip:
 
 	pip install -r requirements.txt
 
-Testing within a dev environment can be accomplished via ```nosetests```. For convenience, this
-project also utilizes [testtube](https://github.com/thomasw/testtube). After creating the dev
-environment, simply run the ```stir``` command to have testtube run tests after changes to the
-project.
+Testing within a dev environment can be accomplished via ```nosetests```.
 
 ## Acknowledgements ##
 

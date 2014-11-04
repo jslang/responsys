@@ -17,7 +17,6 @@ tests_require = (
     'pep8',
     'pinocchio',
     'pyflakes',
-    'testtube',
 )
 
 setup(
