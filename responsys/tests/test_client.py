@@ -1,4 +1,5 @@
 import unittest
+from urllib.error import URLError
 
 from mock import Mock, patch
 from suds import WebFault
@@ -42,6 +43,11 @@ class InteractClientTests(unittest.TestCase):
     def test_call_method_returns_soap_method_return_value(self):
         self.client.service.bananas.return_value = 1
         self.assertEqual(self.interact.call('bananas'), 1)
+
+    def test_call_method_raises_ConnectError_for_url_timeout(self):
+        self.client.service.rm_rf.side_effect = URLError('Timeout')
+        with self.assertRaises(ConnectError):
+            self.interact.call('rm_rf', '/.')
 
     def test_call_method_raises_ServiceError_for_unhandled_webfault(self):
         self.client.service.rm_rf.side_effect = WebFault(Mock(), Mock())

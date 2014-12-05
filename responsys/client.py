@@ -1,4 +1,5 @@
 import logging
+from urllib.error import URLError
 
 from suds.client import Client
 from suds import WebFault
@@ -86,6 +87,8 @@ class InteractClient(object):
         """ Calls the service method defined with the arguments provided """
         try:
             response = getattr(self.client.service, method)(*args)
+        except URLError:
+            raise ConnectError("Request to service timed out")
         except WebFault as web_fault:
             fault_name = getattr(web_fault.fault, 'faultstring', None)
             error = str(web_fault.fault.detail)
