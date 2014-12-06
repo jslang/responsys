@@ -115,7 +115,7 @@ class InteractClient(object):
             login_result = self.login(self.username, self.password)
         except AccountFault:
             log.error('Login failed, invalid username or password')
-            raise ConnectError("Failed to connect to soap service")
+            raise
 
         self.__set_session(login_result.session_id)
         self.connected = True

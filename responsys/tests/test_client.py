@@ -98,9 +98,9 @@ class InteractClientTests(unittest.TestCase):
         self.assertTrue(self.interact.login.called)
 
     @patch.object(InteractClient, 'login')
-    def test_connect_method_raises_connect_error_on_account_fault(self, login):
+    def test_connect_method_raises_account_fault_on_credential_failure(self, login):
         login.side_effect = AccountFault
-        with self.assertRaises(ConnectError):
+        with self.assertRaises(AccountFault):
             self.interact.connect()
 
     @patch.object(InteractClient, 'login', Mock(return_value=Mock(sessionId=1)))
