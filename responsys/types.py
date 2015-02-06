@@ -52,6 +52,10 @@ class InteractType(object):
         for name, value in list(kwargs.items()):
             self.soap_attribute(name, value)
 
+    def __eq__(self, a):
+        attr_equal = lambda attr: getattr(self, attr) == getattr(a, attr)
+        return all([attr_equal(attr) for attr in self._attributes])
+
 
 class InteractObject(InteractType):
 
