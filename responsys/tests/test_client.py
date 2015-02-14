@@ -1,12 +1,13 @@
+from time import time
 import unittest
+from unittest.mock import patch, Mock
 from urllib.error import URLError
 
-from mock import Mock, patch
 from suds import WebFault
 
 from ..exceptions import (
     ConnectError, ServiceError, ApiLimitError, AccountFault, TableFault, ListFault)
-from ..client import InteractClient
+from .. import client
 
 
 class InteractClientTests(unittest.TestCase):
@@ -20,14 +21,50 @@ class InteractClientTests(unittest.TestCase):
             'pod': 'pod',
             'client': self.client,
         }
-        self.interact = InteractClient(**self.configuration)
+        self.interact = client.InteractClient(**self.configuration)
 
-    def test_connected_property_returns_false_by_default(self):
+    def test_starts_disconnected(self):
         self.assertFalse(self.interact.connected)
 
-    def test_connected_property_returns_true_after_successful_connect(self):
+    @patch.object(client, 'time')
+    def test_connected_property_returns_time_of_connection_after_successful_connect(self, mtime):
+        mtime.return_value = connection_time = time()
         self.interact.connect()
-        self.assertTrue(self.interact.connected)
+        self.assertEqual(self.interact.connected, connection_time)
+
+    @patch.object(client, 'time')
+    @patch.object(client.InteractClient, 'login')
+    def test_session_property_returns_session_id_and_start_after_successful_connect(
+            self, login, mtime):
+
+        mtime.return_value = session_start = time()
+        session_id = "session_id"
+        login.return_value = Mock(session_id=session_id)
+        self.interact.connect()
+
+        self.assertEqual(self.interact.session, (session_id, session_start))
+
+    @patch.object(client.InteractClient, 'login')
+    def test_connect_reuses_session_if_possible_and_does_not_login(
+            self, login):
+        session_id = "session_id"
+        login.return_value = Mock(session_id=session_id)
+
+        self.interact.connect()
+        self.interact.disconnect()
+
+        self.interact.connect()
+        self.assertEqual(login.call_count, 1)
+        self.interact.disconnect()
+
+    @patch.object(client.InteractClient, 'login')
+    def test_connect_gets_new_session_if_session_is_expired(self, login):
+        self.interact.connect()
+        self.interact.disconnect()
+        self.interact.session_lifetime = -1
+
+        self.interact.connect()
+        self.assertEqual(login.call_count, 2)
 
     def test_connected_property_returns_false_after_disconnect(self):
         self.interact.disconnect()
@@ -72,38 +109,33 @@ class InteractClientTests(unittest.TestCase):
         with self.assertRaises(TableFault):
             self.interact.call('give_me_a_table', 'awesome_table')
 
-    @patch.object(InteractClient, 'WSDLS', {'pod': 'pod_wsdl'})
+    @patch.object(client.InteractClient, 'WSDLS', {'pod': 'pod_wsdl'})
     def test_wsdl_property_returns_correct_value(self):
         self.assertEqual(self.interact.wsdl, 'pod_wsdl')
 
-    @patch.object(InteractClient, 'ENDPOINTS', {'pod': 'pod_endpoint'})
+    @patch.object(client.InteractClient, 'ENDPOINTS', {'pod': 'pod_endpoint'})
     def test_endpoint_property_returns_correct_value(self):
         self.assertEqual(self.interact.endpoint, 'pod_endpoint')
 
-    @patch.object(InteractClient, 'connect', Mock())
+    @patch.object(client.InteractClient, 'connect', Mock())
     def test_entering_context_calls_connect(self):
         self.assertFalse(self.interact.connect.called)
         with self.interact:
             self.assertTrue(self.interact.connect.called)
 
-    @patch.object(InteractClient, 'disconnect', Mock())
+    @patch.object(client.InteractClient, 'disconnect', Mock())
     def test_leaving_context_calls_disconnect(self):
         with self.interact:
             self.assertFalse(self.interact.disconnect.called)
         self.assertTrue(self.interact.disconnect.called)
 
-    @patch.object(InteractClient, 'login', Mock())
-    def test_connect_method_calls_login(self):
-        self.interact.connect()
-        self.assertTrue(self.interact.login.called)
-
-    @patch.object(InteractClient, 'login')
+    @patch.object(client.InteractClient, 'login')
     def test_connect_method_raises_account_fault_on_credential_failure(self, login):
         login.side_effect = AccountFault
         with self.assertRaises(AccountFault):
             self.interact.connect()
 
-    @patch.object(InteractClient, 'login', Mock(return_value=Mock(sessionId=1)))
+    @patch.object(client.InteractClient, 'login', Mock(return_value=Mock(sessionId=1)))
     def test_connect_method_returns_true_on_success(self):
         self.assertTrue(self.interact.connect())
 
@@ -113,16 +145,24 @@ class InteractClientTests(unittest.TestCase):
         self.interact.connect()
         self.interact.client.set_options.assert_called_once_with(soapheaders=soapheaders)
 
-    @patch.object(InteractClient, 'logout', Mock(return_value=True))
-    def test_disconnect_method_returns_true_on_success(self):
-        self.interact.connected = True
-        self.assertTrue(self.interact.disconnect())
-
-    @patch.object(InteractClient, 'logout', Mock(return_value=False))
-    def test_disconnect_method_returns_false_on_failure(self):
-        self.assertFalse(self.interact.disconnect())
-
-    def test_disconnect_method_unsets_soapheaders(self):
-        self.interact.connected = True
+    @patch.object(client.InteractClient, 'logout')
+    def test_disconnect_does_not_logout_if_session_is_available(self, logout):
+        self.interact.connect()
         self.interact.disconnect()
-        self.interact.client.set_options.assert_called_once_with(soapheaders=())
+        self.assertEqual(logout.call_count, 0)
+
+    @patch.object(client.InteractClient, 'logout')
+    def test_disconnect_calls_logout_if_session_is_expired(self, logout):
+        self.interact.connect()
+        self.interact.session_lifetime = -1
+        self.interact.disconnect()
+        self.assertEqual(logout.call_count, 1)
+        self.assertIsNone(self.interact.session)
+
+    @patch.object(client.InteractClient, 'logout')
+    def test_disconnect_calls_logout_if_abandon_session_is_passed(self, logout):
+        self.interact.connect()
+        self.interact.disconnect(abandon_session=True)
+        self.assertEqual(logout.call_count, 1)
+        self.assertIsNone(self.interact.session)
+
