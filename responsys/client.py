@@ -1,4 +1,5 @@
 import logging
+from time import time
 from urllib.error import URLError
 
 from suds.client import Client
@@ -33,7 +34,7 @@ class InteractClient(object):
     Since responsys limits the number of active sessions per account, this can help ensure you
     don't leave unused connections open.
     """
-
+    DEFAULT_SESSION_LIFETIME = 60 * 10
     WSDLS = {
         '2': 'https://ws2.responsys.net/webservices/wsdl/ResponsysWS_Level1.wsdl',
         '5': 'https://ws5.responsys.net/webservices/wsdl/ResponsysWS_Level1.wsdl',
@@ -70,10 +71,31 @@ class InteractClient(object):
     def connected(self, value):
         self._connected = value
 
-    def __init__(self, username, password, pod, client=None):
+    @property
+    def session(self):
+        return getattr(self, '_session', None)
+
+    @session.setter
+    def session(self, session_id):
+        self._session = type(
+            'Session', (tuple,), {
+                'is_expired': property(lambda s: s[1] + self.session_lifetime <= time()),
+        })([session_id, time()])
+
+        session_header = self.client.factory.create('SessionHeader')
+        session_header.sessionId = session_id
+        self.client.set_options(soapheaders=session_header)
+
+    @session.deleter
+    def session(self):
+        self._session = None
+        self.client.set_options(soapheaders=())
+
+    def __init__(self, username, password, pod, client=None, session_lifetime=None):
         self.username = username
         self.password = password
         self.pod = pod
+        self.session_lifetime = session_lifetime or self.DEFAULT_SESSION_LIFETIME
         self._client = client
 
     def __enter__(self):
@@ -111,27 +133,30 @@ class InteractClient(object):
         Uses the credentials passed to the client init to login and setup the session id returned.
         Returns True on successful connection, otherwise False.
         """
-        try:
-            login_result = self.login(self.username, self.password)
-        except AccountFault:
-            log.error('Login failed, invalid username or password')
-            raise
 
-        self.__set_session(login_result.session_id)
-        self.connected = True
-        return True
+        if not self.session or self.session.is_expired:
+            try:
+                login_result = self.login(self.username, self.password)
+            except AccountFault:
+                log.error('Login failed, invalid username or password')
+                raise
+            else:
+                self.session = login_result.session_id
 
-    def disconnect(self):
+        self.connected = time()
+        return self.connected
+
+    def disconnect(self, abandon_session=False):
         """ Disconnects from the Responsys soap service
 
         Calls the service logout method and destroys the client's session information. Returns
         True on success, False otherwise.
         """
-        if self.connected and self.logout():
-            self.__unset_session()
-            self.connected = False
-            return True
-        return False
+        self.connected = False
+        if (self.session and self.session.is_expired) or abandon_session:
+            self.logout()
+            del self.session
+        return True
 
     # Session Management Methods
     def login(self, username, password):
