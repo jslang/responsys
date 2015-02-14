@@ -187,16 +187,6 @@ class InteractClient(object):
         """
         return ServerAuthResult(self.call('authenticateServer', username, client_challenge))
 
-    def __set_session(self, session_id):
-        """ Set appropriate session header on suds client """
-        session_header = self.client.factory.create('SessionHeader')
-        session_header.sessionId = session_id
-        self.client.set_options(soapheaders=session_header)
-
-    def __unset_session(self):
-        """ Remove session header from current suds client """
-        self.client.set_options(soapheaders=())
-
     # List Management Methods
     def merge_list_members(self, list_, record_data, merge_rule):
         """ Responsys.mergeListMembers call
