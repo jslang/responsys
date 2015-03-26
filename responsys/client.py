@@ -134,7 +134,12 @@ class InteractClient(object):
         Returns True on successful connection, otherwise False.
         """
 
-        if not self.session or self.session.is_expired:
+        if self.session and self.session.is_expired:
+            # Close the session to avoid max concurrent session errors
+            self.disconnect(abandon_session=True)
+
+        if not self.session:
+
             try:
                 login_result = self.login(self.username, self.password)
             except AccountFault:
@@ -154,7 +159,13 @@ class InteractClient(object):
         """
         self.connected = False
         if (self.session and self.session.is_expired) or abandon_session:
-            self.logout()
+            try:
+                self.logout()
+            except:
+                log.warning(
+                    'Logout call to responsys failed, session may have not been terminated',
+                    exc_info=True
+                )
             del self.session
         return True
 

@@ -47,15 +47,10 @@ class InteractClientTests(unittest.TestCase):
     @patch.object(client.InteractClient, 'login')
     def test_connect_reuses_session_if_possible_and_does_not_login(
             self, login):
-        session_id = "session_id"
-        login.return_value = Mock(session_id=session_id)
+        self.interact.session = "session_id"
 
         self.interact.connect()
-        self.interact.disconnect()
-
-        self.interact.connect()
-        self.assertEqual(login.call_count, 1)
-        self.interact.disconnect()
+        self.assertFalse(login.called)
 
     @patch.object(client.InteractClient, 'login')
     def test_connect_gets_new_session_if_session_is_expired(self, login):
@@ -145,16 +140,28 @@ class InteractClientTests(unittest.TestCase):
         self.interact.connect()
         self.interact.client.set_options.assert_called_once_with(soapheaders=soapheaders)
 
+    @patch.object(client.InteractClient, 'login')
+    @patch.object(client.InteractClient, 'logout')
+    def test_connect_abandons_session_if_session_is_expired(self, logout, login):
+        self.interact.session_lifetime = -1
+        self.interact.session = session_id = '1234'
+
+        self.interact.connect()
+        logout.assert_called_once_with()
+        self.assertNotEqual(self.interact.session[0], session_id)
+
     @patch.object(client.InteractClient, 'logout')
     def test_disconnect_does_not_logout_if_session_is_available(self, logout):
-        self.interact.connect()
+        self.session = 'session_id'
+
         self.interact.disconnect()
         self.assertEqual(logout.call_count, 0)
 
     @patch.object(client.InteractClient, 'logout')
     def test_disconnect_calls_logout_if_session_is_expired(self, logout):
-        self.interact.connect()
+        self.interact.session = 'session_id'
         self.interact.session_lifetime = -1
+
         self.interact.disconnect()
         self.assertEqual(logout.call_count, 1)
         self.assertIsNone(self.interact.session)
