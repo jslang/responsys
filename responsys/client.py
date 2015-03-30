@@ -299,7 +299,7 @@ class InteractClient(object):
         return self.call('deleteTable', table)
 
     def delete_profile_extension_members(self, profile_extension, query_column, ids_to_delete):
-        """ Responsys.retrieveProfileExtensionRecords call
+        """ Responsys.deleteProfileExtensionRecords call
 
         Accepts:
             InteractObject profile_extension
@@ -312,7 +312,7 @@ class InteractClient(object):
         """
         profile_extension = profile_extension.get_soap_object(self.client)
         result = self.call(
-            'retrieveProfileExtensionRecords', profile_extension, query_column, ids_to_delete)
+            'deleteProfileExtensionMembers', profile_extension, query_column, ids_to_delete)
         if hasattr(result, '__iter__'):
             return [DeleteResult(delete_result) for delete_result in result]
         return [DeleteResult(result)]
@@ -415,7 +415,7 @@ class InteractClient(object):
         return [RecipientResult(result) for result in results]
 
     def retrieve_table_records(self, table, query_column, field_list, ids_to_retrieve):
-        """ Responsys.mergeIntoProfileExtension call
+        """ Responsys.retrieveTableRecords call
 
         Accepts:
             InteractObject table
