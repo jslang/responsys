@@ -60,7 +60,7 @@ class InteractClient(object):
     @property
     def client(self):
         if self._client is None:
-            self._client = Client(self.wsdl, location=self.endpoint)
+            self._client = Client(self.wsdl, location=self.endpoint, timeout=self.timeout)
         return self._client
 
     @property
@@ -91,11 +91,12 @@ class InteractClient(object):
         self._session = None
         self.client.set_options(soapheaders=())
 
-    def __init__(self, username, password, pod, client=None, session_lifetime=None):
+    def __init__(self, username, password, pod, client=None, session_lifetime=600, timeout=5):
         self.username = username
         self.password = password
         self.pod = pod
-        self.session_lifetime = session_lifetime or self.DEFAULT_SESSION_LIFETIME
+        self.session_lifetime = session_lifetime
+        self.timeout = timeout
         self._client = client
 
     def __enter__(self):
