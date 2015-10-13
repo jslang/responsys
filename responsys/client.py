@@ -1,4 +1,5 @@
 import logging
+from ssl import SSLError
 from time import time
 from urllib.error import URLError
 
@@ -110,7 +111,8 @@ class InteractClient(object):
         """ Calls the service method defined with the arguments provided """
         try:
             response = getattr(self.client.service, method)(*args)
-        except URLError:
+        except (URLError, SSLError) as e:
+            log.exception('Failed to connect to responsys service')
             raise ConnectError("Request to service timed out")
         except WebFault as web_fault:
             fault_name = getattr(web_fault.fault, 'faultstring', None)
