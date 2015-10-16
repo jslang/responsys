@@ -1,8 +1,8 @@
 from time import time
 import unittest
-from unittest.mock import patch, Mock
-from urllib.error import URLError
 
+from mock import patch, Mock
+from six.moves.urllib.error import URLError
 from suds import WebFault
 
 from ..exceptions import (
