@@ -10,7 +10,7 @@ from .exceptions import (
     ConnectError, ServiceError, AccountFault, ApiLimitError, TableFault, ListFault)
 from .types import (
     RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult,
-    TriggerResult)
+    TriggerResult, FolderResult)
 
 log = logging.getLogger(__name__)
 
@@ -451,3 +451,10 @@ class InteractClient(object):
     #
     # Content Management Methods
     # Folder Management Methods
+    def list_folders(self):
+        """ Responsys.listFolders call
+
+        Returns a list of FolderResult instances
+        """
+        results = self.call('listFolders')
+        return [FolderResult(result) for result in results]

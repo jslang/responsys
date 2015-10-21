@@ -4,7 +4,8 @@ from mock import Mock, patch
 
 from ..types import (
     InteractType, InteractObject, ListMergeRule, RecordData, Record, DeleteResult, LoginResult,
-    MergeResult, RecipientResult, ServerAuthResult, RecipientData, Recipient, OptionalData)
+    MergeResult, RecipientResult, ServerAuthResult, RecipientData, Recipient, OptionalData,
+    FolderResult)
 
 
 class InteractTypeTests(unittest.TestCase):
@@ -91,6 +92,11 @@ class InteractTypeChildTests(unittest.TestCase):
         return
 
 
+# Needed due to "name" being an argument to Mock already
+MOCK_FOLDER_RESULT = Mock()
+MOCK_FOLDER_RESULT.name = 'blarg'
+
+
 InteractTypeChildTests.generate_type_methods([
     # (TypeToTest
     #   initializer kwargs,
@@ -121,7 +127,10 @@ InteractTypeChildTests.generate_type_methods([
     (ServerAuthResult,
         {'server_auth_result': Mock(authSessionId=1, encryptedClientChallenge='boo',
          serverChallenge='ahhh')},
-        {'auth_session_id': 1, 'encrypted_client_challenge': 'boo', 'server_challenge': 'ahhh'})
+        {'auth_session_id': 1, 'encrypted_client_challenge': 'boo', 'server_challenge': 'ahhh'}),
+    (FolderResult,
+        {'folder_result': MOCK_FOLDER_RESULT},
+        {'name': 'blarg'}),
 ])
 
 
