@@ -1,7 +1,7 @@
 import logging
 from ssl import SSLError
 from time import time
-from urllib.error import URLError
+from six.moves.urllib.error import URLError
 
 from suds.client import Client
 from suds import WebFault
