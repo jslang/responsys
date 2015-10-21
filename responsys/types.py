@@ -331,3 +331,8 @@ class TriggerResult(InteractType):
         self.soap_attribute('recipient_id', trigger_result.recipientId)
         self.soap_attribute('success', trigger_result.success)
         self.soap_attribute('error_message', trigger_result.errorMessage)
+
+
+class FolderResult(InteractType):
+    def set_attributes(self, folder_result):
+        self.soap_attribute('name', folder_result.name)
