@@ -1,7 +1,7 @@
 import logging
 from ssl import SSLError
 from time import time
-from urllib.error import URLError
+from six.moves.urllib.error import URLError
 
 from suds.client import Client
 from suds import WebFault
@@ -10,7 +10,7 @@ from .exceptions import (
     ConnectError, ServiceError, AccountFault, ApiLimitError, TableFault, ListFault)
 from .types import (
     RecordData, RecipientResult, MergeResult, DeleteResult, LoginResult, ServerAuthResult,
-    TriggerResult)
+    TriggerResult, FolderResult)
 
 log = logging.getLogger(__name__)
 
@@ -451,3 +451,10 @@ class InteractClient(object):
     #
     # Content Management Methods
     # Folder Management Methods
+    def list_folders(self):
+        """ Responsys.listFolders call
+
+        Returns a list of FolderResult instances
+        """
+        results = self.call('listFolders')
+        return [FolderResult(result) for result in results]

@@ -1,5 +1,31 @@
 import re
-from collections import UserDict
+import unicodedata
+
+
+try:
+    str.isnumeric
+except AttributeError:
+    # Python 2.x
+    def is_numeric(s):
+        try:
+            float(s)
+        except ValueError:
+            pass
+        else:
+            return True
+
+        try:
+            unicodedata.numeric(s)
+        except (TypeError, ValueError):
+            pass
+        else:
+            return True
+
+        return False
+else:
+    # Python 3
+    def is_numeric(s):
+        return s.isnumeric()
 
 
 class InteractType(object):
@@ -207,7 +233,7 @@ class MergeResult(InteractType):
         failed = None
         if self.error_message:
             failed = re.findall(r'Record ([0-9]*) =', self.error_message)
-            failed = [f.isnumeric() and int(f) or f for f in failed]
+            failed = [is_numeric(f) and int(f) or f for f in failed]
 
         return failed or []
 
@@ -289,7 +315,7 @@ class RecipientData(InteractType):
         return recipient_data
 
 
-class OptionalData(UserDict, InteractType):
+class OptionalData(dict, InteractType):
     def get_soap_object(self, client):
         optional_data_list = []
         for name, value in self.items():
@@ -305,3 +331,8 @@ class TriggerResult(InteractType):
         self.soap_attribute('recipient_id', trigger_result.recipientId)
         self.soap_attribute('success', trigger_result.success)
         self.soap_attribute('error_message', trigger_result.errorMessage)
+
+
+class FolderResult(InteractType):
+    def set_attributes(self, folder_result):
+        self.soap_attribute('name', folder_result.name)
