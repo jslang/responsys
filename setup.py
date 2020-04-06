@@ -23,7 +23,7 @@ setup(
     name=responsys.__name__,
     keywords=responsys.__keywords__,
     version=responsys.__version__,
-    url='https://github.com/jslang/responsys',
+    url='https://github.com/udemy/responsys',
     author='Jared Lang',
     description='Python client library for the Responsys Interact API',
     long_description=long_description,
