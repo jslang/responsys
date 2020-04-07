@@ -115,7 +115,7 @@ class InteractClient(object):
             log.exception('Failed to connect to responsys service')
             raise ConnectError("Request to service timed out")
         except WebFault as web_fault:
-            fault_name = getattr(web_fault.fault, 'faultstring', '').strip()
+            fault_name = str(getattr(web_fault.fault, 'faultstring', '')).strip()
             error = str(web_fault.fault.detail)
 
             if fault_name == 'TableFault':
