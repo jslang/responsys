@@ -126,7 +126,7 @@ class InteractClient(object):
                 raise ApiLimitError(error)
             if fault_name == 'AccountFault':
                 raise AccountFault(error)
-
+            log.exception('ServiceError: method={} args={} error={}'.format(method, args, error))
             raise ServiceError(web_fault.fault, web_fault.document)
         return response
 

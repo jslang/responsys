@@ -53,6 +53,6 @@ This library was developed while working for the fine folks at
 ## Legal ##
 
 This code is neither officially supported nor endorsed by Udemy.com, Oracle, Responsys, or any
-related entites.
+related entities.
 
 [License](./LICENSE)

@@ -22,7 +22,7 @@ tests_require = (
 setup(
     name=responsys.__name__,
     keywords=responsys.__keywords__,
-    version="0.2.4.ud1",
+    version="0.2.4.ud2",
     url='https://github.com/udemy/responsys',
     author='Jared Lang',
     description='Python client library for the Responsys Interact API',
